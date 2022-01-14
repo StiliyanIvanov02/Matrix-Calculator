@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "ProjectMap": {
+    "b7538912-81a0-47b0-8876-16d539685881": {
+      "ProjectGuid": "b7538912-81a0-47b0-8876-16d539685881",
+      "DisplayName": "MatrixCalculator",
+      "ColorIndex": 0
+    }
+  },
+  "NextColorIndex": 1
+}
