@@ -1,25 +1,6 @@
 ﻿  MatrixCalculator.cpp
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(49,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(206,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(210,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(219,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(223,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(232,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(237,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(253,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(257,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(263,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(268,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(284,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(288,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(294,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(298,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(344,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(350,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(382,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(386,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(396,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(400,11): warning C4566: character represented by universal-character-name '\u2551' cannot be represented in the current code page (1252)
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(38): warning C4715: 'SaveResultAsFile': not all control paths return a value
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(46): warning C4715: 'ReadData': not all control paths return a value
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(91,13): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(742,44): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(762,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(44): warning C4715: 'saveResultAsFile': not all control paths return a value
   MatrixCalculator.vcxproj -> C:\Uni\Introduction to Programming\MatrixCalculator\x64\Debug\MatrixCalculator.exe

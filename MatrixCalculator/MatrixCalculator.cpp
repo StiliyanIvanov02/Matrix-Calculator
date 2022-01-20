@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int NUMBER_OPERATIONS = 9;
+const int NUMBER_OPERATIONS = 8;
 
 const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Sum of two matrices",
@@ -15,15 +15,19 @@ const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Finding the determinant",
 	"Finding the inverse matrix",
 	"Transposition of matrix",
-	"Matrix equation",
-	"Singular Value Decomposition"
+	"Matrix equation"
 };
 
 const int MAX_NUMBER_DIGITS = 6;
+const int MAX_NUMBER_ELEMENTS_IN_ROW = 4;
 
-const size_t MAX_NUMBER_ELEMENTS = 4;
+struct matrixData {
+	int rows;
+	int columns;
+	double** elements;
+};
 
-bool SaveResultAsFile () {
+bool saveResultAsFile () {
 	char saved = ' ';
 	while (saved != 'Y' && saved != 'N') {
 		cout << "Do you want to save the result of the operation in a file?" << endl;
@@ -39,15 +43,51 @@ bool SaveResultAsFile () {
 	}
 }
 
-int ReadData (char path[]) {
-	ifstream file(path);
+matrixData readData (char path[]) {
+	ifstream file;
 
+	char* line = new char[1024];
+
+	double* elements = new double[400];
+	int elementsCount = 0, linesCount = 0;
+
+	file.open(path, std::ios::in);
 	if (!file.is_open()) {
-		return 1;
+		cout << "There is no file with such a name" << endl;
 	}
+	else {
+		while (!file.eof()) {
+			file >> elements[elementsCount];
+			elementsCount++;
+		}
+		file.clear();
+		file.seekg(0, file.beg);
+		while (!file.eof()) {
+			file.getline(line, 1024);
+			linesCount++;
+		}
+	}
+
+	file.close();
+
+	int rows = linesCount;
+	int columns = elementsCount / rows;
+	int index = 0;
+
+	double** matrix = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		matrix[i] = new double[columns];
+		for (int j = 0; j < columns; j++) {
+			matrix[i][j] = elements[index];
+			index++;
+		}
+	}
+
+	matrixData matrixData = { rows,columns,matrix };
+	return matrixData;
 }
 
-char* GenerateNameMatrixFilePath () {
+char* generateNameMatrixFilePath () {
 	int random = ((double)rand() / (1));
 	double code = random * 100000;
 
@@ -56,17 +96,68 @@ char* GenerateNameMatrixFilePath () {
 	return output;
 }
 
-double** CalculateDivisionByScalar(double** matrix, int rows, int columns, double scalar) {
+int numberCharsDoubleNumber(double number) {
+	int count = 0;
+
+	if (number - (int)number <= 0.0001) {
+		int numberInt = (int)number;
+		while (numberInt != 0.0) {
+			numberInt /= 10;
+			count++;
+		}
+	}
+	else {
+		count = 1;
+		while (number - (int)number > 0.0001) {
+			number *= 10;
+		}
+		int numberInt = (int)number;
+		while (numberInt != 0) {
+			numberInt /= 10;
+			count++;
+		}
+	}
+
+	return count;
+}
+
+double** calculateMatrixSum(double** matrix1, double** matrix2, int rows, int columns) {
+	double** matrix = new double* [rows];
 	for (int i = 0; i < rows; i++) {
+		matrix[i] = new double[columns];
 		for (int j = 0; j < columns; j++) {
-			matrix[i][j] /= scalar;
+			matrix[i][j] = matrix1[i][j] + matrix2[i][j];
 		}
 	}
 
 	return matrix;
 }
 
-double** CalculateMatrixMultiplication(double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2) {
+double** calculateMultiplicationByScalar(double** matrix, int rows, int columns, double scalar) {
+	double** multipliedMatrix = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		multipliedMatrix[i] = new double[columns];
+		for (int j = 0; j < columns; j++) {
+			multipliedMatrix[i][j] = matrix[i][j] * scalar;
+		}
+	}
+
+	return multipliedMatrix;
+}
+
+double** calculateDivisionByScalar(double** matrix, int rows, int columns, double scalar) {
+	double** dividedMatrix = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		dividedMatrix[i] = new double[columns];
+		for (int j = 0; j < columns; j++) {
+			dividedMatrix[i][j] = matrix[i][j] / scalar;
+		}
+	}
+
+	return dividedMatrix;
+}
+
+double** calculateMatrixMultiplication(double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2) {
 	double** matrix = new double* [rows1];
 	for (int i = 0; i < rows1; i++) {
 		matrix[i] = new double[columns2];
@@ -85,9 +176,9 @@ double** CalculateMatrixMultiplication(double** matrix1, double** matrix2, int r
 	return matrix;
 }
 
-double CalculateDeterminant(double** matrix, int rows) {
-	if (rows == 1) {
-		return matrix[rows - 1][rows - 1];
+double calculateDeterminant(double** matrix, int rows) {
+	if (rows == 2) {
+		return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
 	}
 	else {
 		double determinant = 0;
@@ -108,12 +199,15 @@ double CalculateDeterminant(double** matrix, int rows) {
 			}
 
 			if ((1 + (i + 1))% 2 == 0) {
-				determinant += matrix[0][i] * CalculateDeterminant(A, rows - 1);
+				determinant += matrix[0][i] * calculateDeterminant(A, rows - 1);
 			}
 			else {
-				determinant -= matrix[0][i] * CalculateDeterminant(A, rows - 1);
+				determinant -= matrix[0][i] * calculateDeterminant(A, rows - 1);
 			}
 
+			for (int j = 0; j < rows - 1; j++) {
+				delete A[j];
+			}
 			delete[] A;
 		}
 
@@ -121,7 +215,7 @@ double CalculateDeterminant(double** matrix, int rows) {
 	}
 }
 
-double** CalculateTransposedMatrix (double** matrix, int rows, int columns) {
+double** calculateTransposedMatrix (double** matrix, int rows, int columns) {
 	double** transposedMatrix = new double* [columns];
 	for (int i = 0; i < columns; i++) {
 		transposedMatrix[i] = new double[rows];
@@ -136,8 +230,13 @@ double** CalculateTransposedMatrix (double** matrix, int rows, int columns) {
 	return transposedMatrix;
 }
 
-double** CalculateInverseMatrix(double** matrix, int rows) {
-	double determinant = CalculateDeterminant(matrix, rows);
+double** calculateInverseMatrix(double** matrix, int rows) {
+	double determinant = calculateDeterminant(matrix, rows);
+
+	if (determinant == 0) {
+		cout << "Cannot execute the operation. The determinant of the matrix should not be equal to zero." << endl;
+		return 0;
+	}
 
 	double** cofactorMatrix = new double* [rows];
 	for (int i = 0; i < rows; i++) {
@@ -154,33 +253,65 @@ double** CalculateInverseMatrix(double** matrix, int rows) {
 			int index1 = 0, index2 = 0;
 
 			for (int m = 0; m < rows; m++) {
-				for (int n = 0; n < rows; n++) {
-					if (m != i || n != j) {
-						A[index1][index2] = matrix[m][n];
-						index2++;
+				if (m != i) {
+					for (int n = 0; n < rows; n++) {
+						if (n != j) {
+							A[index1][index2] = matrix[m][n];
+							index2++;
+						}
 					}
+					index1++;
+					index2 = 0;
 				}
-				index1++;
 			}
 
-			cofactorMatrix[i][j] = CalculateDeterminant(A, rows - 1);
+			cofactorMatrix[i][j] = calculateDeterminant(A, rows - 1);
 
+			for (int k = 0; k < rows - 1; k++) {
+				delete A[k];
+			}
 			delete[] A;
 		}
 	}
 
-	double** adjugateMatrix = CalculateTransposedMatrix(cofactorMatrix, rows, rows);
+	double** adjugateMatrix = calculateTransposedMatrix(cofactorMatrix, rows, rows);
 
+	for (int i = 0; i < rows; i++) {
+		delete cofactorMatrix[i];
+	}
 	delete[] cofactorMatrix;
 
-	double** inverseMatrix = CalculateDivisionByScalar (adjugateMatrix, rows, rows, determinant);
+	double** inverseMatrix = calculateDivisionByScalar (adjugateMatrix, rows, rows, determinant);
 
+	for (int i = 0; i < rows; i++) {
+		delete adjugateMatrix[i];
+	}
 	delete[] adjugateMatrix;
 
 	return inverseMatrix;
 }
 
-void SaveMatrix (double** matrix, int rows, int columns, char* filename) {
+int numberSymbolsMatrixRow(int numberElements) {
+	int count = 6;
+
+	for (int i = 0; i < numberElements; i++) {
+		count += MAX_NUMBER_DIGITS + 1;
+	}
+
+	return count;
+}
+
+void printMatrixRow (double** matrix, int rowIndex, int columns) {
+	cout << " | ";
+
+	for (int i = 0; i < columns; i++) {
+		cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[rowIndex][i];
+	}
+
+	cout << " | ";
+}
+
+void saveMatrix (double** matrix, int rows, int columns, char* filename) {
 	ofstream file(filename);
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < columns; j++) {
@@ -193,23 +324,16 @@ void SaveMatrix (double** matrix, int rows, int columns, char* filename) {
 	cout << "Result saved at " << filename << endl;
 }
 
-void SumMatrices (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool resultSaved) {
+void sumMatrices (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool resultSaved) {
 	if (rows1 != rows2 || columns1 != columns2) {
 		cout << "Cannot execute the operation. The dimensions of the two matrices should be the same in order for them to be summed." << endl;
 		return;
 	}
 
-	double** matrix = new double* [rows1];
-	for (int i = 0; i < rows1; i++) {
-		matrix[i] = new double[columns1];
-	}
+	double** matrix = calculateMatrixSum(matrix1, matrix2, rows1, columns1);
 
 	for (int i = 0; i < rows1; i++) {
-		cout << " ║ ";
-		for (int j = 0; j < columns1; j++) {
-			cout << setw(MAX_NUMBER_DIGITS+1) << matrix1[i][j];
-		}
-		cout << " ║ ";
+		printMatrixRow(matrix1, i, columns1);
 
 		if (i == rows1 / 2) {
 			cout << " + ";
@@ -218,11 +342,7 @@ void SumMatrices (double** matrix1, double** matrix2, int rows1, int columns1, i
 			cout << "   ";
 		}
 
-		cout << " ║ ";
-		for (int j = 0; j < columns1; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix2[i][j];
-		}
-		cout << " ║ ";
+		printMatrixRow(matrix2, i, columns1);
 
 		if (i == rows1 / 2) {
 			cout << " = ";
@@ -231,161 +351,252 @@ void SumMatrices (double** matrix1, double** matrix2, int rows1, int columns1, i
 			cout << "   ";
 		}
 
-		cout << " ║ ";
-		for (int j = 0; j < columns1; j++) {
-			matrix[i][j] = matrix1[i][j] + matrix2[i][j];
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
-		}
-		cout << " ║ ";
+		printMatrixRow(matrix, i, columns1);
 
 		cout << endl;
 	}
 
 	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(matrix, rows1, columns1, filename);	
-		delete[] filename;
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(matrix, rows1, columns1, filename);	
+		delete filename;
 	}
 
+	for (int i = 0; i < rows1; i++) {
+		delete matrix[i];
+	}
 	delete[] matrix;
 }
 
-void MultiplyByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
+void multiplyByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
+	double** multipliedMatrix = calculateMultiplicationByScalar(matrix, rows, columns, scalar);
+
 	for (int i = 0; i < rows; i++) {
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
-		}
-		cout << " ║ ";
+		printMatrixRow(matrix, i, columns);
 
 		if (i == rows / 2) {
 			cout << " *  " << scalar << "  = ";
 		}
-
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			matrix[i][j] = matrix[i][j] * scalar;
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
+		else {
+			cout << "    ";
+			for (int s = 0; s < numberCharsDoubleNumber(scalar); s++) {
+				cout << " ";
+			}
+			cout << "    ";
 		}
-		cout << " ║ ";
+
+		printMatrixRow(multipliedMatrix, i, columns);
 
 		cout << endl;
 	}
 
 	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(matrix, rows, columns, filename);
-		delete[] filename;
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(multipliedMatrix, rows, columns, filename);
+		delete filename;
 	}
-}
-
-void DivideByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
-	double** dividedMatrix = CalculateDivisionByScalar(matrix, rows, columns, scalar);
 
 	for (int i = 0; i < rows; i++) {
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
-		}
-		cout << " ║ ";
+		delete multipliedMatrix[i];
+	}
+	delete[] multipliedMatrix;
+}
+
+void divideByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
+	double** dividedMatrix = calculateDivisionByScalar(matrix, rows, columns, scalar);
+
+	for (int i = 0; i < rows; i++) {
+		printMatrixRow(matrix, i, columns);
 
 		if (i == rows / 2) {
-			cout << " *  " << scalar << "  = ";
+			cout << " /  " << scalar << "  = ";
+		}
+		else {
+			cout << "    ";
+			for (int s = 0; s < numberCharsDoubleNumber(scalar); s++) {
+				cout << " ";
+			}
+			cout << "    ";
 		}
 
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << dividedMatrix[i][j];
-		}
-		cout << " ║ ";
+		printMatrixRow(dividedMatrix, i, columns);
 
 		cout << endl;
 	}
 	
 	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(matrix, rows, columns, filename);
-		delete[] filename;
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(dividedMatrix, rows, columns, filename);
+		delete filename;
 	}
+
+	for (int i = 0; i < rows; i++) {
+		delete dividedMatrix[i];
+	}
+	delete[] dividedMatrix;
 };
 
-void MultiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool resultSaved) {
+void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool resultSaved) {
 	if (columns2 != rows1) {
 		cout << "Cannot execute the operation. The number of rows of the second matrix should be the same as the number of columns of the first one in order for them to be multiplied." << endl;
 		return;
 	}
 
-	double** matrix = CalculateMatrixMultiplication(matrix1, matrix2, rows1, columns1, rows2, columns2);
+	double** matrix = calculateMatrixMultiplication(matrix1, matrix2, rows1, columns1, rows2, columns2);
 
-	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(matrix, rows1, columns2, filename);
-		delete[] filename;
+	int rows;
+	if (rows1 >= rows2) {
+		rows = rows1;
+	}
+	else {
+		rows = rows2;
 	}
 
+	for (int i = 0; i < rows; i++) {
+		if (i >= rows1) {
+			for (int j = 0; j < numberSymbolsMatrixRow(columns1); j++) {
+				cout << " ";
+			}
+		}
+		else {
+			printMatrixRow(matrix1, i, columns1);
+		}
+
+		if (i == rows1 / 2) {
+			cout << " + ";
+		}
+		else {
+			cout << "   ";
+		}
+
+		if (i >= rows2) {
+			for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
+				cout << " ";
+			}
+		}
+		else {
+			printMatrixRow(matrix2, i, columns2);
+		}
+
+		if (i == rows1 / 2) {
+			cout << " = ";
+		}
+		else {
+			cout << "   ";
+		}
+
+		if (i >= rows1) {
+			for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
+				cout << " ";
+			}
+		}
+		else {
+			printMatrixRow(matrix, i, columns1);
+		}
+	}
+	
+	if (resultSaved == true) {
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(matrix, rows1, columns2, filename);
+		delete filename;
+	}
+
+	for (int i = 0; i < rows1; i++) {
+		delete[] matrix[i];
+	}
 	delete[] matrix;
 }
 
-void FindDeterminant(double** matrix, int rows, int columns) {
+void findDeterminant(double** matrix, int rows, int columns) {
 	if (rows != columns) {
 		cout << "Cannot execute the operation. You can find the determinant only of a square matrix." << endl;
 		return;
 	}
-	else if (rows > 4) {
+	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW) {
 		cout << "Cannot execute the operation. This program cannot find the determinant of a matrix larger than 4 X 4." << endl;
 		return;
 	}
 
-	double determinant = CalculateDeterminant(matrix, rows);
+	double determinant = calculateDeterminant(matrix, rows);
 
 	for (int i = 0; i < rows; i++) {
 		if (i == rows / 2) {
-			cout << " det " << endl;
+			cout << " det ";
+		}
+		else {
+			cout << "     ";
 		}
 
-		cout << " ║ ";
-		
-		for (int j = 0; j < rows; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
-		}
-
-		cout << " ║ ";
+		printMatrixRow(matrix, 1, rows);
 
 		if (i == rows / 2) {
-			cout << " = " << determinant << endl;
+			cout << " = " << determinant;
 		}
+
+		cout << endl;
 	}
 }
 
-void InverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
+void inverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
 	if (rows != columns) {
 		cout << "Cannot execute the operation. You can find the inverse only of a square matrix." << endl;
 		return;
 	}
-	else if (rows > 4) {
+	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW) {
 		cout << "Cannot execute the operation. This program cannot find the inverse of a matrix larger than 4 X 4." << endl;
 		return;
 	}
 
-	double** inverseMatrix = CalculateInverseMatrix(matrix, rows);
+	double** inverseMatrix = calculateInverseMatrix(matrix, rows);
 
-	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(inverseMatrix, rows, rows, filename);
+	for (int i = 0; i < rows; i++) {
+		printMatrixRow(matrix, 1, rows);
+
+		if (i == 0) {
+			cout << " -1  ";
+		}
+		else if (i == rows / 2) {
+			cout << "   = ";
+		}
+		else {
+			cout << "     ";
+		}
+
+		printMatrixRow(inverseMatrix, i, rows);
 	}
 
+	if (resultSaved == true) {
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(inverseMatrix, rows, rows, filename);
+		delete filename;
+	}
+
+	for (int i = 0; i < rows; i++) {
+		delete[] inverseMatrix[i];
+	}
 	delete[] inverseMatrix;
 };
 
-void TransposeMatrix (double** matrix, int rows, int columns, bool resultSaved) {
-	double** transposedMatrix = CalculateTransposedMatrix(matrix, rows, columns);
+void transposeMatrix (double** matrix, int rows, int columns, bool resultSaved) {
+	double** transposedMatrix = calculateTransposedMatrix(matrix, rows, columns);
 
-	for (int i = 0; i < rows; i++) {
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[i][j];
+	int rowsOutput = 0;
+	if (rows >= columns) {
+		rowsOutput = rows;
+	}
+	else {
+		rowsOutput = columns;
+	}
+
+	for (int i = 0; i < rowsOutput; i++) {
+		if (i >= rows) {
+			for (int j = 0; j < numberSymbolsMatrixRow(columns); j++) {
+				cout << " ";
+			}
 		}
-		cout << " ║ ";
+		else {
+			printMatrixRow(matrix, i, columns);
+		}
 
 		if (i == 0) {
 			cout << " t ";
@@ -395,31 +606,37 @@ void TransposeMatrix (double** matrix, int rows, int columns, bool resultSaved) 
 			cout << " = ";
 		}
 
-		cout << " ║ ";
-		for (int j = 0; j < columns; j++) {
-			cout << setw(MAX_NUMBER_DIGITS + 1) << matrix[j][i];
+		if (i >= columns) {
+			for (int j = 0; j < numberSymbolsMatrixRow(rows); j++) {
+				cout << " ";
+			}
 		}
-		cout << " ║ ";
+		else {
+			printMatrixRow(transposedMatrix, i, rows);
+		}
 
 		cout << endl;
 	}
 
 	if (resultSaved == true) {
-		char* filename = GenerateNameMatrixFilePath();
-		SaveMatrix(transposedMatrix, columns, rows, filename);
-		delete[] filename;
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(transposedMatrix, columns, rows, filename);
+		delete filename;
 	}
 
+	for (int i = 0; i < columns; i++) {
+		delete[] transposedMatrix[i];
+	}
 	delete[] transposedMatrix;
 }
 
-void MatrixEquation(double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool isLeft, bool resultSaved) {
+void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool isLeft, bool resultSaved) {
 	if (rows1 != columns1) {
 		cout << "Cannot execute the operation. The first matrix should be a square matrix." << endl;
 		return;
 	}
 
-	double** inverceMatrix1 = CalculateInverseMatrix(matrix1, rows1);
+	double** inverceMatrix1 = calculateInverseMatrix(matrix1, rows1);
 
 	if (isLeft) {
 		if (columns2 != rows1) {
@@ -432,12 +649,12 @@ void MatrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			X[i] = new double[columns1];
 		}
 
-		X = CalculateMatrixMultiplication(matrix2, matrix1, rows2, columns2, rows1, columns1);
+		X = calculateMatrixMultiplication(matrix2, matrix1, rows2, columns2, rows1, columns1);
 
 		if (resultSaved == true) {
-			char* filename = GenerateNameMatrixFilePath();
-			SaveMatrix(X, rows2, columns1, filename);
-			delete[] filename;
+			char* filename = generateNameMatrixFilePath();
+			saveMatrix(X, rows2, columns1, filename);
+			delete filename;
 		}
 
 		delete[] X;
@@ -453,12 +670,12 @@ void MatrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			X[i] = new double[columns2];
 		}
 
-		X = CalculateMatrixMultiplication(matrix1, matrix2, rows1, columns1, rows2, columns2);
+		X = calculateMatrixMultiplication(matrix1, matrix2, rows1, columns1, rows2, columns2);
 
 		if (resultSaved == true) {
-			char* filename = GenerateNameMatrixFilePath();
-			SaveMatrix(X, rows2, columns1, filename);
-			delete[] filename;
+			char* filename = generateNameMatrixFilePath();
+			saveMatrix(X, rows2, columns1, filename);
+			delete filename;
 		}
 
 		delete[] X;
@@ -477,31 +694,93 @@ int main() {
 	}
 	cout << endl;
 
-	cout << "Enter number:";
+	cout << "Enter the number of the selected operation: ";
 	int number;
 	cin >> number;
 
 	switch (number) {
 		case 1: {
-			cout << "Enter the path to the file containing the first matrix:";
+			cout << "Enter the path to the file containing the first matrix: ";
 			char* file1 = new char[200];
 			cin >> file1;
-			cout << "Enter the path to the file containing the second matrix:";
+			cout << "Enter the path to the file containing the second matrix: ";
 			char* file2 = new char[200];
 			cin >> file2;
 
-			bool saveResultFile = SaveResultAsFile();
+			bool saveResultFile = saveResultAsFile();
 
-			double** matrix1 = new double* [4];
-			for (int i = 0; i < 4; i++) {
-				matrix1[i] = new double[4];
-			}
+			matrixData matrixData1 = readData(file1);
+			double** matrix1 = matrixData1.elements;
+			int rows1 = matrixData1.rows;
+			int columns1 = matrixData1.columns;
 
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 4; j++) {
-					matrix1[i][j] = 100000.0;
-				}
-			}
+			matrixData matrixData2 = readData(file2);
+			double** matrix2 = matrixData2.elements;
+			int rows2 = matrixData2.rows;
+			int columns2 = matrixData2.columns;
+
+			sumMatrices(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
+
+			break;
+		}
+		case 2: {
+			cout << "Enter the path to the file containing the matrix: ";
+			char* file = new char[200];
+			cin >> file;
+
+			cout << "Enter the value of the scalar: ";
+			double scalar;
+			cin >> scalar;
+
+			bool saveResultFile = saveResultAsFile();
+
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
+
+			multiplyByScalar(matrix, rows, columns, scalar, saveResultFile);
+
+			break;
+		}
+		case 3: {
+			cout << "Enter the path to the file containing the matrix: ";
+			char* file = new char[200];
+			cin >> file;
+
+			cout << "Enter the value of the scalar: ";
+			double scalar;
+			cin >> scalar;
+
+			bool saveResultFile = saveResultAsFile();
+
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
+
+			divideByScalar(matrix, rows, columns, scalar, saveResultFile);
+
+			break;
+		}
+		case 4: {
+			cout << "Enter the path to the file containing the first matrix: ";
+			char* file1 = new char[200];
+			cin >> file1;
+			cout << "Enter the path to the file containing the second matrix: ";
+			char* file2 = new char[200];
+			cin >> file2;
+
+			bool saveResultFile = saveResultAsFile();
+
+			break;
+		}
+		case 5: {
+			cout << "Enter the path to the file containing the matrix: ";
+			char* file = new char[200];
+			cin >> file;
+
+			bool saveResultFile = saveResultAsFile();
 
 			double** matrix2 = new double* [4];
 			for (int i = 0; i < 4; i++) {
@@ -510,83 +789,56 @@ int main() {
 
 			for (int i = 0; i < 4; i++) {
 				for (int j = 0; j < 4; j++) {
-					matrix2[i][j] = 200000.0;
+					if (i != j) {
+						matrix2[i][j] = 4;
+					}
+					else {
+						matrix2[i][j] = i + 1;
+					}
 				}
 			}
 
-			SumMatrices(matrix1, matrix2, 4, 4, 4, 4, saveResultFile);
-
-			break;
-		}
-		case 2: {
-			cout << "Enter the path to the file containing the matrix:";
-			char* file = new char[200];
-			cin >> file;
-
-			cout << "Enter the value of the scalar:";
-			double scalar;
-			cin >> scalar;
-
-			bool saveResultFile = SaveResultAsFile();
-
-			break;
-		}
-		case 3: {
-			cout << "Enter the path to the file containing the matrix:";
-			char* file = new char[200];
-			cin >> file;
-
-			cout << "Enter the value of the scalar:";
-			double scalar;
-			cin >> scalar;
-
-			bool saveResultFile = SaveResultAsFile();
-
-			break;
-		}
-		case 4: {
-			cout << "Enter the path to the file containing the first matrix:";
-			char* file1 = new char[200];
-			cin >> file1;
-			cout << "Enter the path to the file containing the second matrix:";
-			char* file2 = new char[200];
-			cin >> file2;
-
-			bool saveResultFile = SaveResultAsFile();
-
-			break;
-		}
-		case 5: {
-			cout << "Enter the path to the file containing the matrix:";
-			char* file = new char[200];
-			cin >> file;
-
-			bool saveResultFile = SaveResultAsFile();
+			findDeterminant(matrix2, 4, 4);
 
 			break;
 		}
 		case 6: {
-			cout << "Enter the path to the file containing the matrix:";
+			cout << "Enter the path to the file containing the matrix: ";
 			char* file = new char[200];
 			cin >> file;
 
-			bool saveResultFile = SaveResultAsFile();
+			bool saveResultFile = saveResultAsFile();
+
+			double** matrix2 = new double* [4];
+			for (int i = 0; i < 4; i++) {
+				matrix2[i] = new double[4];
+			}
+
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 4; j++) {
+					if (i != j) {
+						matrix2[i][j] = 4;
+					}
+					else {
+						matrix2[i][j] = i + 1;
+					}
+				}
+			}
+
+			inverseMatrix(matrix2, 4, 4, saveResultFile);
 
 			break;
 		}
 		case 7: {
-			cout << "Enter the path to the file containing the matrix:";
+			cout << "Enter the path to the file containing the matrix: ";
 			char* file = new char[200];
 			cin >> file;
 
-			bool saveResultFile = SaveResultAsFile();
+			bool saveResultFile = saveResultAsFile();
 
 			break;
 		}
 		case 8: {
-			break;
-		}
-		case 9: {
 			break;
 		}
 	}
