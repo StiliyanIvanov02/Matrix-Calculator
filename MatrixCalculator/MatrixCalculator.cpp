@@ -5,13 +5,14 @@
 
 using namespace std;
 
-const int NUMBER_OPERATIONS = 8;
+const int NUMBER_OPERATIONS = 9;
 
 const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Sum of two matrices",
 	"Multiplication of matrix by scalar",
 	"Division of matrix by scalar",
 	"Multiplication of matrix by matrix",
+	"Raising a matrix to a power",
 	"Finding the determinant",
 	"Finding the inverse matrix",
 	"Transposition of matrix",
@@ -31,13 +32,15 @@ bool saveResultAsFile () {
 	char saved = ' ';
 	while (saved != 'Y' && saved != 'N') {
 		cout << "Do you want to save the result of the operation in a file?" << endl;
-		cout << "Enter Y for yes or N for no:";
+		cout << "Enter Y for yes or N for no: ";
 		char saved;
 		cin >> saved;
 		if (saved == 'Y') {
+			cout << endl;
 			return true;
 		}
 		else if (saved == 'N') {
+			cout << endl;
 			return false;
 		}
 	}
@@ -98,6 +101,10 @@ char* generateNameMatrixFilePath () {
 
 int numberCharsDoubleNumber(double number) {
 	int count = 0;
+
+	if (number < 0) {
+		count++;
+	}
 
 	if (number - (int)number <= 0.0001) {
 		int numberInt = (int)number;
@@ -291,6 +298,74 @@ double** calculateInverseMatrix(double** matrix, int rows) {
 	return inverseMatrix;
 }
 
+double** calculateMatrixRaisedToPower(double** matrix, int rows, int power) {
+	double** raisedMatrix = new double* [rows];
+	for (int i = 0; i < rows; i++) {
+		raisedMatrix[i] = new double[rows];
+	}
+
+	if (power == 0) {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < rows; j++) {
+				if (i == j) {
+					raisedMatrix[i][j] = 1;
+				}
+				else {
+					raisedMatrix[i][j] = 0;
+				}
+			}
+		}
+	}
+	else if (power >= 1) {
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < rows; j++) {
+				raisedMatrix[i][j] = matrix[i][j];
+			}
+		}
+
+		for (int k = 2; k <= power; k++) {
+			double** raisedMatrixHigher = calculateMatrixMultiplication(raisedMatrix, matrix, rows, rows, rows, rows);
+
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < rows; j++) {
+					raisedMatrix[i][j] = raisedMatrixHigher[i][j];
+				}
+			}
+
+			for (int i = 0; i < rows; i++) {
+				delete[] raisedMatrixHigher[i];
+			}
+			delete[] raisedMatrixHigher;
+		}
+	}
+	else if (power < 0) {
+		double** inverseMatrix = calculateInverseMatrix(matrix, rows);
+
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < rows; j++) {
+				raisedMatrix[i][j] = inverseMatrix[i][j];
+			}
+		}
+
+		for (int k = -2; k >= power; k--) {
+			double** raisedMatrixLower = calculateMatrixMultiplication(raisedMatrix, inverseMatrix, rows, rows, rows, rows);
+
+			for (int i = 0; i < rows; i++) {
+				for (int j = 0; j < rows; j++) {
+					raisedMatrix[i][j] = raisedMatrixLower[i][j];
+				}
+			}
+
+			for (int i = 0; i < rows; i++) {
+				delete[] raisedMatrixLower[i];
+			}
+			delete[] raisedMatrixLower;
+		}
+	}
+
+	return raisedMatrix;
+}
+
 int numberSymbolsMatrixRow(int numberElements) {
 	int count = 6;
 
@@ -463,7 +538,7 @@ void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int 
 		}
 
 		if (i == rows1 / 2) {
-			cout << " + ";
+			cout << " * ";
 		}
 		else {
 			cout << "   ";
@@ -493,6 +568,8 @@ void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int 
 		else {
 			printMatrixRow(matrix, i, columns1);
 		}
+
+		cout << endl;
 	}
 	
 	if (resultSaved == true) {
@@ -507,7 +584,51 @@ void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int 
 	delete[] matrix;
 }
 
-void findDeterminant(double** matrix, int rows, int columns) {
+void raiseMatrixToPower(double** matrix, int rows, int columns, int power, bool resultSaved) {
+	if (rows != columns) {
+		cout << "Cannot execute the operation. You cannot raise to a power a non square matrix." << endl;
+		return;
+	}
+
+	double** raisedMatrix = calculateMatrixRaisedToPower(matrix, rows, power);
+
+	for (int i = 0; i < rows; i++) {
+		printMatrixRow(matrix, 1, rows);
+
+		if (i == 0) {
+			cout << power << "   ";
+		}
+		else if (i == rows / 2) {
+			cout << " ";
+			for (int i = 0; i < numberCharsDoubleNumber(power); i++) {
+				cout << " ";
+			}
+			cout << " = ";
+		}
+		else {
+			for (int i = 0; i < numberCharsDoubleNumber(power) + 4; i++) {
+				cout << " ";
+			}
+		}
+
+		printMatrixRow(raisedMatrix, i, rows);
+
+		cout << endl;
+	}
+
+	if (resultSaved == true) {
+		char* filename = generateNameMatrixFilePath();
+		saveMatrix(raisedMatrix, rows, rows, filename);
+		delete filename;
+	}
+
+	for (int i = 0; i < rows; i++) {
+		delete[] raisedMatrix[i];
+	}
+	delete[] raisedMatrix;
+} 
+
+void findDeterminant (double** matrix, int rows, int columns) {
 	if (rows != columns) {
 		cout << "Cannot execute the operation. You can find the determinant only of a square matrix." << endl;
 		return;
@@ -563,6 +684,8 @@ void inverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
 		}
 
 		printMatrixRow(inverseMatrix, i, rows);
+
+		cout << endl;
 	}
 
 	if (resultSaved == true) {
@@ -599,11 +722,13 @@ void transposeMatrix (double** matrix, int rows, int columns, bool resultSaved) 
 		}
 
 		if (i == 0) {
-			cout << " t ";
+			cout << "t   ";
 		}
-
-		if (i == rows / 2) {
-			cout << " = ";
+		else if (i == rows / 2) {
+			cout << "  = ";
+		}
+		else {
+			cout << "    ";
 		}
 
 		if (i >= columns) {
@@ -657,6 +782,9 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			delete filename;
 		}
 
+		for (int i = 0; i < rows2; i++) {
+			delete[] X[i];
+		}
 		delete[] X;
 	}
 	else {
@@ -678,6 +806,9 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			delete filename;
 		}
 
+		for (int i = 0; i < rows2; i++) {
+			delete[] X[i];
+		}
 		delete[] X;
 	}
 }
@@ -773,6 +904,18 @@ int main() {
 
 			bool saveResultFile = saveResultAsFile();
 
+			matrixData matrixData1 = readData(file1);
+			double** matrix1 = matrixData1.elements;
+			int rows1 = matrixData1.rows;
+			int columns1 = matrixData1.columns;
+
+			matrixData matrixData2 = readData(file2);
+			double** matrix2 = matrixData2.elements;
+			int rows2 = matrixData2.rows;
+			int columns2 = matrixData2.columns;
+
+			multiplyMatrixByMatrix(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
+
 			break;
 		}
 		case 5: {
@@ -780,26 +923,18 @@ int main() {
 			char* file = new char[200];
 			cin >> file;
 
+			cout << "Enter an integer to the power of which the matrix will be raised: ";
+			double power;
+			cin >> power;
+
 			bool saveResultFile = saveResultAsFile();
 
-			double** matrix2 = new double* [4];
-			for (int i = 0; i < 4; i++) {
-				matrix2[i] = new double[4];
-			}
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
 
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 4; j++) {
-					if (i != j) {
-						matrix2[i][j] = 4;
-					}
-					else {
-						matrix2[i][j] = i + 1;
-					}
-				}
-			}
-
-			findDeterminant(matrix2, 4, 4);
-
+			raiseMatrixToPower(matrix, rows, columns, power, saveResultFile);
 			break;
 		}
 		case 6: {
@@ -807,25 +942,12 @@ int main() {
 			char* file = new char[200];
 			cin >> file;
 
-			bool saveResultFile = saveResultAsFile();
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
 
-			double** matrix2 = new double* [4];
-			for (int i = 0; i < 4; i++) {
-				matrix2[i] = new double[4];
-			}
-
-			for (int i = 0; i < 4; i++) {
-				for (int j = 0; j < 4; j++) {
-					if (i != j) {
-						matrix2[i][j] = 4;
-					}
-					else {
-						matrix2[i][j] = i + 1;
-					}
-				}
-			}
-
-			inverseMatrix(matrix2, 4, 4, saveResultFile);
+			findDeterminant(matrix, rows, columns);
 
 			break;
 		}
@@ -836,9 +958,68 @@ int main() {
 
 			bool saveResultFile = saveResultAsFile();
 
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
+
+			inverseMatrix(matrix, rows, columns, saveResultFile);
+
 			break;
 		}
 		case 8: {
+			cout << "Enter the path to the file containing the matrix: ";
+			char* file = new char[200];
+			cin >> file;
+
+			bool saveResultFile = saveResultAsFile();
+
+			matrixData matrixData = readData(file);
+			double** matrix = matrixData.elements;
+			int rows = matrixData.rows;
+			int columns = matrixData.columns;
+
+			transposeMatrix(matrix, rows, columns, saveResultAsFile);
+
+			break;
+		}
+		case 9: {
+			cout << "Enter the path to the file containing the first matrix: ";
+			char* file1 = new char[200];
+			cin >> file1;
+			cout << "Enter the path to the file containing the second matrix: ";
+			char* file2 = new char[200];
+			cin >> file2;
+
+			char position = ' ';
+			bool isLeft;
+			while (position != 'L' && position != 'R') {
+				cout << "Will the matrix X we want to obtain be the left multiplier (X*A=B) or the right multiplier (A*X=B)?" << endl;
+				cout << "Enter L for left or R for right: ";
+				char saved;
+				cin >> saved;
+				if (position == 'L') {
+					isLeft = true;
+				}
+				else if (position == 'R') {
+					isLeft = false;
+				}
+			}
+
+			bool saveResultFile = saveResultAsFile();
+
+			matrixData matrixData1 = readData(file1);
+			double** matrix1 = matrixData1.elements;
+			int rows1 = matrixData1.rows;
+			int columns1 = matrixData1.columns;
+
+			matrixData matrixData2 = readData(file2);
+			double** matrix2 = matrixData2.elements;
+			int rows2 = matrixData2.rows;
+			int columns2 = matrixData2.columns;
+
+			matrixEquation(matrix1, matrix2, rows1, columns1, rows2, columns2, isLeft, saveResultFile);
+
 			break;
 		}
 	}
