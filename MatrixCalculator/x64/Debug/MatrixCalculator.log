@@ -1,8 +1,4 @@
 ﻿  MatrixCalculator.cpp
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(101,15): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(900,44): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(920,42): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(964,46): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(1009,59): warning C4305: 'argument': truncation from 'bool (__cdecl *)(void)' to 'bool'
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(51): warning C4715: 'saveResultAsFile': not all control paths return a value
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(272,3): warning C4551: function call missing argument list
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(52): warning C4715: 'saveResultAsFile': not all control paths return a value
   MatrixCalculator.vcxproj -> C:\Uni\Introduction to Programming\MatrixCalculator\x64\Debug\MatrixCalculator.exe

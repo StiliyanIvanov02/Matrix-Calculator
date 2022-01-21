@@ -5,7 +5,7 @@
 
 using namespace std;
 
-const int NUMBER_OPERATIONS = 9;
+const int NUMBER_OPERATIONS = 10;
 
 const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Sum of two matrices",
@@ -16,7 +16,8 @@ const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Finding the determinant",
 	"Finding the inverse matrix",
 	"Transposition of matrix",
-	"Matrix equation"
+	"Matrix equation",
+	"Exit"
 };
 
 const int FILE_PATH_LENGTH = 19;
@@ -98,8 +99,7 @@ char* generateNameMatrixFilePath() {
 	char* output = new char[FILE_PATH_LENGTH];
 	for (int i = 0; i < FILE_PATH_LENGTH; i++) {
 		if (i >= 9 && i <= 13) {
-			int random = ((double)rand() / (1));
-			output[i] = (random % 10) + '0';
+			output[i] = (rand() % 10) + '0';
 		}
 		else {
 			output[i] = FILE_PATH[i];
@@ -269,7 +269,7 @@ double** calculateInverseMatrix(double** matrix, int rows) {
 
 	if (determinant == 0) {
 		cout << "Cannot execute the operation. The determinant of the matrix should not be equal to zero." << endl;
-		return 0;
+		exit;
 	}
 
 	double** cofactorMatrix = new double* [rows];
@@ -419,7 +419,9 @@ void saveMatrix (double** matrix, int rows, int columns, char* filename) {
 		for (int j = 0; j < columns; j++) {
 			file << setw(6) << matrix[i][j];
 		}
-		file << endl;
+		if (i != rows - 1) {
+			file << endl;
+		}
 	}
 	file.close();
 
@@ -471,7 +473,7 @@ void sumMatrices (double** matrix1, double** matrix2, int rows1, int columns1, i
 	delete[] matrix;
 }
 
-void multiplyByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
+void multiplyByScalar (double** matrix, int rows, int columns, double scalar, bool resultSaved) {
 	double** multipliedMatrix = calculateMultiplicationByScalar(matrix, rows, columns, scalar);
 
 	for (int i = 0; i < rows; i++) {
@@ -506,7 +508,7 @@ void multiplyByScalar (double** matrix, int rows, int columns, int scalar, bool 
 	delete[] multipliedMatrix;
 }
 
-void divideByScalar (double** matrix, int rows, int columns, int scalar, bool resultSaved) {
+void divideByScalar (double** matrix, int rows, int columns, double scalar, bool resultSaved) {
 	double** dividedMatrix = calculateDivisionByScalar(matrix, rows, columns, scalar);
 
 	for (int i = 0; i < rows; i++) {
@@ -624,10 +626,10 @@ void raiseMatrixToPower(double** matrix, int rows, int columns, int power, bool 
 	double** raisedMatrix = calculateMatrixRaisedToPower(matrix, rows, power);
 
 	for (int i = 0; i < rows; i++) {
-		printMatrixRow(matrix, 1, rows);
+		printMatrixRow(matrix, i, rows);
 
 		if (i == 0) {
-			cout << power << "   ";
+			cout << power << "    ";
 		}
 		else if (i == rows / 2) {
 			cout << " ";
@@ -680,7 +682,7 @@ void findDeterminant (double** matrix, int rows, int columns) {
 			cout << "     ";
 		}
 
-		printMatrixRow(matrix, 1, rows);
+		printMatrixRow(matrix, i, rows);
 
 		if (i == rows / 2) {
 			cout << " = " << determinant;
@@ -703,29 +705,31 @@ void inverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
 
 	double** inverseMatrix = calculateInverseMatrix(matrix, rows);
 
-	for (int i = 0; i < rows; i++) {
-		printMatrixRow(matrix, 1, rows);
+	if (!isnan(inverseMatrix[0][0])) {
+		for (int i = 0; i < rows; i++) {
+			printMatrixRow(matrix, i, rows);
 
-		if (i == 0) {
-			cout << " -1  ";
-		}
-		else if (i == rows / 2) {
-			cout << "   = ";
-		}
-		else {
-			cout << "     ";
-		}
+				if (i == 0) {
+					cout << "-1   ";
+				}
+				else if (i == rows / 2) {
+					cout << "   = ";
+				}
+				else {
+					cout << "     ";
+				}
 
-		printMatrixRow(inverseMatrix, i, rows);
+			printMatrixRow(inverseMatrix, i, rows);
 
+			cout << endl;
+		}
 		cout << endl;
-	}
-	cout << endl;
 
-	if (resultSaved == true) {
-		char* filename = generateNameMatrixFilePath();
-		saveMatrix(inverseMatrix, rows, rows, filename);
-		delete filename;
+		if (resultSaved == true) {
+			char* filename = generateNameMatrixFilePath();
+			saveMatrix(inverseMatrix, rows, rows, filename);
+			delete filename;
+		}
 	}
 
 	for (int i = 0; i < rows; i++) {
@@ -796,7 +800,7 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 		return;
 	}
 
-	double** inverceMatrix1 = calculateInverseMatrix(matrix1, rows1);
+	double** inverseMatrix1 = calculateInverseMatrix(matrix1, rows1);
 
 	if (isLeft) {
 		if (columns2 != rows1) {
@@ -864,202 +868,208 @@ int main() {
 	}
 	cout << endl;
 
-	cout << "Enter the number of the selected operation: ";
-	int number;
-	cin >> number;
+	int number = 0;
 
-	switch (number) {
-		case 1: {
-			cout << "Enter the path to the file containing the first matrix: ";
-			char* file1 = new char[200];
-			cin >> file1;
-			cout << "Enter the path to the file containing the second matrix: ";
-			char* file2 = new char[200];
-			cin >> file2;
+	while (number != 10) {
+		cout << "Enter the number of the selected operation: ";
+		cin >> number;
 
-			bool saveResultFile = saveResultAsFile();
+		switch (number) {
+			case 1: {
+				cout << "Enter the path to the file containing the first matrix: ";
+				char* file1 = new char[200];
+				cin >> file1;
+				cout << "Enter the path to the file containing the second matrix: ";
+				char* file2 = new char[200];
+				cin >> file2;
 
-			matrixData matrixData1 = readData(file1);
-			double** matrix1 = matrixData1.elements;
-			int rows1 = matrixData1.rows;
-			int columns1 = matrixData1.columns;
+				bool saveResultFile = saveResultAsFile();
 
-			matrixData matrixData2 = readData(file2);
-			double** matrix2 = matrixData2.elements;
-			int rows2 = matrixData2.rows;
-			int columns2 = matrixData2.columns;
+				matrixData matrixData1 = readData(file1);
+				double** matrix1 = matrixData1.elements;
+				int rows1 = matrixData1.rows;
+				int columns1 = matrixData1.columns;
 
-			sumMatrices(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
+				matrixData matrixData2 = readData(file2);
+				double** matrix2 = matrixData2.elements;
+				int rows2 = matrixData2.rows;
+				int columns2 = matrixData2.columns;
 
-			break;
-		}
-		case 2: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
+				sumMatrices(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
 
-			cout << "Enter the value of the scalar: ";
-			double scalar;
-			cin >> scalar;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			multiplyByScalar(matrix, rows, columns, scalar, saveResultFile);
-
-			break;
-		}
-		case 3: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
-
-			cout << "Enter the value of the scalar: ";
-			double scalar;
-			cin >> scalar;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			divideByScalar(matrix, rows, columns, scalar, saveResultFile);
-
-			break;
-		}
-		case 4: {
-			cout << "Enter the path to the file containing the first matrix: ";
-			char* file1 = new char[200];
-			cin >> file1;
-			cout << "Enter the path to the file containing the second matrix: ";
-			char* file2 = new char[200];
-			cin >> file2;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData1 = readData(file1);
-			double** matrix1 = matrixData1.elements;
-			int rows1 = matrixData1.rows;
-			int columns1 = matrixData1.columns;
-
-			matrixData matrixData2 = readData(file2);
-			double** matrix2 = matrixData2.elements;
-			int rows2 = matrixData2.rows;
-			int columns2 = matrixData2.columns;
-
-			multiplyMatrixByMatrix(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
-
-			break;
-		}
-		case 5: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
-
-			cout << "Enter an integer to the power of which the matrix will be raised: ";
-			double power;
-			cin >> power;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			raiseMatrixToPower(matrix, rows, columns, power, saveResultFile);
-			break;
-		}
-		case 6: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			findDeterminant(matrix, rows, columns);
-
-			break;
-		}
-		case 7: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			inverseMatrix(matrix, rows, columns, saveResultFile);
-
-			break;
-		}
-		case 8: {
-			cout << "Enter the path to the file containing the matrix: ";
-			char* file = new char[200];
-			cin >> file;
-
-			bool saveResultFile = saveResultAsFile();
-
-			matrixData matrixData = readData(file);
-			double** matrix = matrixData.elements;
-			int rows = matrixData.rows;
-			int columns = matrixData.columns;
-
-			transposeMatrix(matrix, rows, columns, saveResultAsFile);
-
-			break;
-		}
-		case 9: {
-			cout << "Enter the path to the file containing the first matrix: ";
-			char* file1 = new char[200];
-			cin >> file1;
-			cout << "Enter the path to the file containing the second matrix: ";
-			char* file2 = new char[200];
-			cin >> file2;
-
-			char position = ' ';
-			bool isLeft;
-			while (position != 'L' && position != 'R') {
-				cout << "Will the matrix X we want to obtain be the left multiplier (X*A=B) or the right multiplier (A*X=B)?" << endl;
-				cout << "Enter L for left or R for right: ";
-				char saved;
-				cin >> saved;
-				if (position == 'L') {
-					isLeft = true;
-				}
-				else if (position == 'R') {
-					isLeft = false;
-				}
+				break;
 			}
+			case 2: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
 
-			bool saveResultFile = saveResultAsFile();
+				cout << "Enter the value of the scalar: ";
+				double scalar;
+				cin >> scalar;
 
-			matrixData matrixData1 = readData(file1);
-			double** matrix1 = matrixData1.elements;
-			int rows1 = matrixData1.rows;
-			int columns1 = matrixData1.columns;
+				bool saveResultFile = saveResultAsFile();
 
-			matrixData matrixData2 = readData(file2);
-			double** matrix2 = matrixData2.elements;
-			int rows2 = matrixData2.rows;
-			int columns2 = matrixData2.columns;
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
 
-			matrixEquation(matrix1, matrix2, rows1, columns1, rows2, columns2, isLeft, saveResultFile);
+				multiplyByScalar(matrix, rows, columns, scalar, saveResultFile);
 
-			break;
+				break;
+			}
+			case 3: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
+
+				cout << "Enter the value of the scalar: ";
+				double scalar;
+				cin >> scalar;
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
+
+				divideByScalar(matrix, rows, columns, scalar, saveResultFile);
+
+				break;
+			}
+			case 4: {
+				cout << "Enter the path to the file containing the first matrix: ";
+				char* file1 = new char[200];
+				cin >> file1;
+				cout << "Enter the path to the file containing the second matrix: ";
+				char* file2 = new char[200];
+				cin >> file2;
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData1 = readData(file1);
+				double** matrix1 = matrixData1.elements;
+				int rows1 = matrixData1.rows;
+				int columns1 = matrixData1.columns;
+
+				matrixData matrixData2 = readData(file2);
+				double** matrix2 = matrixData2.elements;
+				int rows2 = matrixData2.rows;
+				int columns2 = matrixData2.columns;
+
+				multiplyMatrixByMatrix(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
+
+				break;
+			}
+			case 5: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
+
+				cout << "Enter an integer to the power of which the matrix will be raised: ";
+				int power;
+				cin >> power;
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
+
+				raiseMatrixToPower(matrix, rows, columns, power, saveResultFile);
+				break;
+			}
+			case 6: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
+
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
+
+				findDeterminant(matrix, rows, columns);
+
+				break;
+			}
+			case 7: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
+
+				inverseMatrix(matrix, rows, columns, saveResultFile);
+
+				break;
+			}
+			case 8: {
+				cout << "Enter the path to the file containing the matrix: ";
+				char* file = new char[200];
+				cin >> file;
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData = readData(file);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
+
+				transposeMatrix(matrix, rows, columns, saveResultFile);
+
+				break;
+			}
+			case 9: {
+				cout << "Enter the path to the file containing the first matrix: ";
+				char* file1 = new char[200];
+				cin >> file1;
+				cout << "Enter the path to the file containing the second matrix: ";
+				char* file2 = new char[200];
+				cin >> file2;
+
+				char position = ' ';
+				bool isLeft;
+				while (position != 'L' && position != 'R') {
+					cout << "Will the matrix X we want to obtain be the left multiplier (X*A=B) or the right multiplier (A*X=B)?" << endl;
+					cout << "Enter L for left or R for right: ";
+					char saved;
+					cin >> saved;
+					if (position == 'L') {
+						isLeft = true;
+					}
+					else if (position == 'R') {
+						isLeft = false;
+					}
+				}
+
+				bool saveResultFile = saveResultAsFile();
+
+				matrixData matrixData1 = readData(file1);
+				double** matrix1 = matrixData1.elements;
+				int rows1 = matrixData1.rows;
+				int columns1 = matrixData1.columns;
+
+				matrixData matrixData2 = readData(file2);
+				double** matrix2 = matrixData2.elements;
+				int rows2 = matrixData2.rows;
+				int columns2 = matrixData2.columns;
+
+				matrixEquation(matrix1, matrix2, rows1, columns1, rows2, columns2, isLeft, saveResultFile);
+
+				break;
+			}
+			default: {
+				break;
+			}
 		}
 	}
 
