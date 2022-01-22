@@ -6,7 +6,6 @@
 using namespace std;
 
 const int NUMBER_OPERATIONS = 10;
-
 const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Sum of two matrices",
 	"Multiplication of matrix by scalar",
@@ -20,12 +19,15 @@ const char* OPERATIONS[NUMBER_OPERATIONS] = {
 	"Exit"
 };
 
-const int FILE_PATH_LENGTH = 19;
-
+const int MAX_NUMBER_CHARS_IN_ROW_FILE = 1024;
+const int OUTPUT_FILE_PATH_LENGTH = 19;
+const int INPUT_FILE_PATH_MAX_LENGTH = 200;
 const char* FILE_PATH = "Matrices/00000.txt";
 
+const int MAX_NUMBER_ELEMENTS_IN_ROW = 20;
+const int MAX_NUMBER_ELEMENTS_IN_ROW_DETERMINANT = 4;
+
 const int MAX_NUMBER_DIGITS = 6;
-const int MAX_NUMBER_ELEMENTS_IN_ROW = 4;
 
 struct matrixData {
 	int rows;
@@ -54,9 +56,9 @@ bool saveResultAsFile () {
 matrixData readData (char path[]) {
 	ifstream file;
 
-	char* line = new char[1024];
+	char* line = new char[MAX_NUMBER_CHARS_IN_ROW_FILE];
 
-	double* elements = new double[400];
+	double* elements = new double[MAX_NUMBER_ELEMENTS_IN_ROW*MAX_NUMBER_ELEMENTS_IN_ROW];
 	int elementsCount = 0, linesCount = 0;
 
 	file.open(path, std::ios::in);
@@ -71,7 +73,7 @@ matrixData readData (char path[]) {
 		file.clear();
 		file.seekg(0, file.beg);
 		while (!file.eof()) {
-			file.getline(line, 1024);
+			file.getline(line, MAX_NUMBER_CHARS_IN_ROW_FILE);
 			linesCount++;
 		}
 	}
@@ -96,8 +98,8 @@ matrixData readData (char path[]) {
 }
 
 char* generateNameMatrixFilePath() {
-	char* output = new char[FILE_PATH_LENGTH];
-	for (int i = 0; i < FILE_PATH_LENGTH; i++) {
+	char* output = new char[OUTPUT_FILE_PATH_LENGTH];
+	for (int i = 0; i < OUTPUT_FILE_PATH_LENGTH; i++) {
 		if (i >= 9 && i <= 13) {
 			output[i] = (rand() % 10) + '0';
 		}
@@ -667,7 +669,7 @@ void findDeterminant (double** matrix, int rows, int columns) {
 		cout << "Cannot execute the operation. You can find the determinant only of a square matrix." << endl;
 		return;
 	}
-	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW) {
+	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW_DETERMINANT) {
 		cout << "Cannot execute the operation. This program cannot find the determinant of a matrix larger than 4 X 4." << endl;
 		return;
 	}
@@ -698,7 +700,7 @@ void inverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
 		cout << "Cannot execute the operation. You can find the inverse only of a square matrix." << endl;
 		return;
 	}
-	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW) {
+	else if (rows > MAX_NUMBER_ELEMENTS_IN_ROW_DETERMINANT) {
 		cout << "Cannot execute the operation. This program cannot find the inverse of a matrix larger than 4 X 4." << endl;
 		return;
 	}
@@ -802,57 +804,168 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 
 	double** inverseMatrix1 = calculateInverseMatrix(matrix1, rows1);
 
-	if (isLeft) {
-		if (columns2 != rows1) {
-			cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
-			return;
+	if (!isnan(inverseMatrix1[0][0])) {
+		if (isLeft) {
+			if (columns2 != rows1) {
+				cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
+				return;
+			}
+
+			double** X = new double* [rows2];
+			for (int i = 0; i < rows2; i++) {
+				X[i] = new double[columns1];
+			}
+
+			X = calculateMatrixMultiplication(matrix2, inverseMatrix1, rows2, columns2, rows1, columns1);
+
+			int rows;
+			if (rows1 >= rows2) {
+				rows = rows1;
+			}
+			else {
+				rows = rows2;
+			}
+
+			for (int i = 0; i < rows; i++) {
+				if (i >= rows1) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns1); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix1, i, columns1);
+				}
+
+				if (i == rows / 2) {
+					cout << " *  X  = ";
+				}
+				else {
+					cout << "         ";
+				}
+
+				if (i >= rows2) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix2, i, columns2);
+				}
+
+				cout << endl;
+			}
+			cout << endl;
+
+			for (int j = 0; j < rows2; j++) {
+				if (j == rows2 / 2) {
+					cout << " X  = ";
+				}
+				else {
+					cout << "      ";
+				}
+
+				printMatrixRow(X, j, columns1);
+
+				cout << endl;
+			}
+
+			cout << endl;
+
+			if (resultSaved == true) {
+				char* filename = generateNameMatrixFilePath();
+				saveMatrix(X, rows2, columns1, filename);
+				delete filename;
+			}
+
+			for (int i = 0; i < rows2; i++) {
+				delete[] X[i];
+			}
+			delete[] X;
 		}
-		
-		double** X = new double* [rows2];
-		for (int i = 0; i < rows2; i++) {
-			X[i] = new double[columns1];
+		else {
+			if (columns1 != rows2) {
+				cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
+				return;
+			}
+
+			double** X = new double* [rows1];
+			for (int i = 0; i < rows1; i++) {
+				X[i] = new double[columns2];
+			}
+
+			X = calculateMatrixMultiplication(inverseMatrix1, matrix2, rows1, columns1, rows2, columns2);
+
+			int rows;
+			if (rows1 >= rows2) {
+				rows = rows1;
+			}
+			else {
+				rows = rows2;
+			}
+
+			for (int i = 0; i < rows; i++) {
+				if (i == rows / 2) {
+					cout << " X  * ";
+				}
+				else {
+					cout << "      ";
+				}
+
+				if (i >= rows1) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns1); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix1, i, columns1);
+				}
+
+				if (i == rows / 2) {
+					cout << " = ";
+				}
+				else {
+					cout << "   ";
+				}
+
+				if (i >= rows2) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix2, i, columns2);
+				}
+
+				cout << endl;
+			}
+			cout << endl;
+
+			for (int j = 0; j < rows1; j++) {
+				if (j == rows1 / 2) {
+					cout << " X  = ";
+				}
+				else {
+					cout << "      ";
+				}
+
+				printMatrixRow(X, j, columns2);
+
+				cout << endl;
+			}
+
+			cout << endl;
+
+			if (resultSaved == true) {
+				char* filename = generateNameMatrixFilePath();
+				saveMatrix(X, rows2, columns1, filename);
+				delete filename;
+			}
+
+			for (int i = 0; i < rows2; i++) {
+				delete[] X[i];
+			}
+			delete[] X;
 		}
-
-		X = calculateMatrixMultiplication(matrix2, matrix1, rows2, columns2, rows1, columns1);
-
-		cout << endl;
-
-		if (resultSaved == true) {
-			char* filename = generateNameMatrixFilePath();
-			saveMatrix(X, rows2, columns1, filename);
-			delete filename;
-		}
-
-		for (int i = 0; i < rows2; i++) {
-			delete[] X[i];
-		}
-		delete[] X;
-	}
-	else {
-		if (columns1 != rows2) {
-			cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
-			return;
-		}
-
-		double** X = new double* [rows1];
-		for (int i = 0; i < rows1; i++) {
-			X[i] = new double[columns2];
-		}
-
-		X = calculateMatrixMultiplication(matrix1, matrix2, rows1, columns1, rows2, columns2);
-
-		cout << endl;
-
-		if (resultSaved == true) {
-			char* filename = generateNameMatrixFilePath();
-			saveMatrix(X, rows2, columns1, filename);
-			delete filename;
-		}
-
-		for (int i = 0; i < rows2; i++) {
-			delete[] X[i];
-		}
-		delete[] X;
 	}
 }
 
@@ -870,17 +983,17 @@ int main() {
 
 	int number = 0;
 
-	while (number != 10) {
+	while (number != NUMBER_OPERATIONS) {
 		cout << "Enter the number of the selected operation: ";
 		cin >> number;
 
 		switch (number) {
 			case 1: {
 				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[200];
+				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file1;
 				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[200];
+				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file2;
 
 				bool saveResultFile = saveResultAsFile();
@@ -901,7 +1014,7 @@ int main() {
 			}
 			case 2: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
 				cout << "Enter the value of the scalar: ";
@@ -921,7 +1034,7 @@ int main() {
 			}
 			case 3: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
 				cout << "Enter the value of the scalar: ";
@@ -941,10 +1054,10 @@ int main() {
 			}
 			case 4: {
 				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[200];
+				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file1;
 				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[200];
+				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file2;
 
 				bool saveResultFile = saveResultAsFile();
@@ -965,12 +1078,14 @@ int main() {
 			}
 			case 5: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
-				cout << "Enter an integer to the power of which the matrix will be raised: ";
-				int power;
-				cin >> power;
+				int power = -6;
+				while (power < -5 || power > 5) {
+					cout << "Enter the power to which the matrix will be raised (an integer between -5 and 5): ";
+					cin >> power;
+				}
 
 				bool saveResultFile = saveResultAsFile();
 
@@ -984,7 +1099,7 @@ int main() {
 			}
 			case 6: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
 				matrixData matrixData = readData(file);
@@ -998,7 +1113,7 @@ int main() {
 			}
 			case 7: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
 				bool saveResultFile = saveResultAsFile();
@@ -1014,7 +1129,7 @@ int main() {
 			}
 			case 8: {
 				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[200];
+				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file;
 
 				bool saveResultFile = saveResultAsFile();
@@ -1030,10 +1145,10 @@ int main() {
 			}
 			case 9: {
 				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[200];
+				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file1;
 				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[200];
+				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
 				cin >> file2;
 
 				char position = ' ';
