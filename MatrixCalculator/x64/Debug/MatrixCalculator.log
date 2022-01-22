@@ -1,4 +1,4 @@
 ﻿  MatrixCalculator.cpp
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(272,3): warning C4551: function call missing argument list
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(52): warning C4715: 'saveResultAsFile': not all control paths return a value
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(284,3): warning C4551: function call missing argument list
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(54): warning C4715: 'saveResultAsFile': not all control paths return a value
   MatrixCalculator.vcxproj -> C:\Uni\Introduction to Programming\MatrixCalculator\x64\Debug\MatrixCalculator.exe

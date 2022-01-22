@@ -53,32 +53,42 @@ bool saveResultAsFile () {
 	}
 }
 
-matrixData readData (char path[]) {
-	ifstream file;
+matrixData readData (char command[]) {
+	bool validPath = false;
 
 	char* line = new char[MAX_NUMBER_CHARS_IN_ROW_FILE];
 
-	double* elements = new double[MAX_NUMBER_ELEMENTS_IN_ROW*MAX_NUMBER_ELEMENTS_IN_ROW];
+	double* elements = new double[MAX_NUMBER_ELEMENTS_IN_ROW * MAX_NUMBER_ELEMENTS_IN_ROW];
 	int elementsCount = 0, linesCount = 0;
 
-	file.open(path, std::ios::in);
-	if (!file.is_open()) {
-		cout << "There is no file with such a name" << endl;
-	}
-	else {
-		while (!file.eof()) {
-			file >> elements[elementsCount];
-			elementsCount++;
-		}
-		file.clear();
-		file.seekg(0, file.beg);
-		while (!file.eof()) {
-			file.getline(line, MAX_NUMBER_CHARS_IN_ROW_FILE);
-			linesCount++;
-		}
-	}
+	while (validPath == false) {
+		cout << command;
 
-	file.close();
+		char* path = new char[INPUT_FILE_PATH_MAX_LENGTH];
+		cin >> path;
+
+		ifstream file;
+
+		file.open(path, std::ios::in);
+		if (!file.is_open()) {
+			cout << "There is no file with such a name." << endl;
+		}
+		else {
+			validPath = true;
+			while (!file.eof()) {
+				file >> elements[elementsCount];
+				elementsCount++;
+			}
+			file.clear();
+			file.seekg(0, file.beg);
+			while (!file.eof()) {
+				file.getline(line, MAX_NUMBER_CHARS_IN_ROW_FILE);
+				linesCount++;
+			}
+		}
+
+		file.close();
+	}
 
 	int rows = linesCount;
 	int columns = elementsCount / rows;
@@ -979,107 +989,93 @@ int main() {
 	for (int i = 0; i < NUMBER_OPERATIONS; i++) {
 		cout << i + 1 << ". " << OPERATIONS[i] << endl;
 	}
-	cout << endl;
 
 	int number = 0;
 
 	while (number != NUMBER_OPERATIONS) {
+		cout << endl;
 		cout << "Enter the number of the selected operation: ";
 		cin >> number;
 
 		switch (number) {
 			case 1: {
-				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file1;
-				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file2;
-
-				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData1 = readData(file1);
+				char command1[] = "Enter the path to the file containing the first matrix: ";
+				matrixData matrixData1 = readData(command1);
 				double** matrix1 = matrixData1.elements;
 				int rows1 = matrixData1.rows;
 				int columns1 = matrixData1.columns;
 
-				matrixData matrixData2 = readData(file2);
+				char command2[] = "Enter the path to the file containing the second matrix: ";
+				matrixData matrixData2 = readData(command2);
 				double** matrix2 = matrixData2.elements;
 				int rows2 = matrixData2.rows;
 				int columns2 = matrixData2.columns;
+				
+				bool saveResultFile = saveResultAsFile();
 
 				sumMatrices(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
 
 				break;
 			}
 			case 2: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
+				char command[] = "Enter the path to the file containing the matrix: ";
+				matrixData matrixData = readData(command);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
 
 				cout << "Enter the value of the scalar: ";
 				double scalar;
 				cin >> scalar;
 
 				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData = readData(file);
-				double** matrix = matrixData.elements;
-				int rows = matrixData.rows;
-				int columns = matrixData.columns;
 
 				multiplyByScalar(matrix, rows, columns, scalar, saveResultFile);
 
 				break;
 			}
-			case 3: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
+			case 3: {			
+				char command[] = "Enter the path to the file containing the matrix: ";
+				matrixData matrixData = readData(command);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
 
 				cout << "Enter the value of the scalar: ";
 				double scalar;
 				cin >> scalar;
 
 				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData = readData(file);
-				double** matrix = matrixData.elements;
-				int rows = matrixData.rows;
-				int columns = matrixData.columns;
 
 				divideByScalar(matrix, rows, columns, scalar, saveResultFile);
 
 				break;
 			}
 			case 4: {
-				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file1;
-				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file2;
-
-				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData1 = readData(file1);
+				char command1[] = "Enter the path to the file containing the first matrix: ";
+				matrixData matrixData1 = readData(command1);
 				double** matrix1 = matrixData1.elements;
 				int rows1 = matrixData1.rows;
 				int columns1 = matrixData1.columns;
 
-				matrixData matrixData2 = readData(file2);
+				char command2[] = "Enter the path to the file containing the second matrix: ";
+				matrixData matrixData2 = readData(command2);
 				double** matrix2 = matrixData2.elements;
 				int rows2 = matrixData2.rows;
 				int columns2 = matrixData2.columns;
+
+				bool saveResultFile = saveResultAsFile();
 
 				multiplyMatrixByMatrix(matrix1, matrix2, rows1, columns1, rows2, columns2, saveResultFile);
 
 				break;
 			}
 			case 5: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
+				char command[] = "Enter the path to the file containing the matrix: ";
+				matrixData matrixData = readData(command);
+				double** matrix = matrixData.elements;
+				int rows = matrixData.rows;
+				int columns = matrixData.columns;
 
 				int power = -6;
 				while (power < -5 || power > 5) {
@@ -1089,20 +1085,12 @@ int main() {
 
 				bool saveResultFile = saveResultAsFile();
 
-				matrixData matrixData = readData(file);
-				double** matrix = matrixData.elements;
-				int rows = matrixData.rows;
-				int columns = matrixData.columns;
-
 				raiseMatrixToPower(matrix, rows, columns, power, saveResultFile);
 				break;
 			}
 			case 6: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
-
-				matrixData matrixData = readData(file);
+				char command[] = "Enter the path to the file containing the matrix: ";
+ 				matrixData matrixData = readData(command);
 				double** matrix = matrixData.elements;
 				int rows = matrixData.rows;
 				int columns = matrixData.columns;
@@ -1112,44 +1100,43 @@ int main() {
 				break;
 			}
 			case 7: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
-
-				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData = readData(file);
+				char command[] = "Enter the path to the file containing the matrix: ";
+				matrixData matrixData = readData(command);
 				double** matrix = matrixData.elements;
 				int rows = matrixData.rows;
 				int columns = matrixData.columns;
+
+				bool saveResultFile = saveResultAsFile();
 
 				inverseMatrix(matrix, rows, columns, saveResultFile);
 
 				break;
 			}
 			case 8: {
-				cout << "Enter the path to the file containing the matrix: ";
-				char* file = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file;
-
-				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData = readData(file);
+				char command[] = "Enter the path to the file containing the matrix: ";
+				matrixData matrixData = readData(command);
 				double** matrix = matrixData.elements;
 				int rows = matrixData.rows;
 				int columns = matrixData.columns;
+
+				bool saveResultFile = saveResultAsFile();
 
 				transposeMatrix(matrix, rows, columns, saveResultFile);
 
 				break;
 			}
 			case 9: {
-				cout << "Enter the path to the file containing the first matrix: ";
-				char* file1 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file1;
-				cout << "Enter the path to the file containing the second matrix: ";
-				char* file2 = new char[INPUT_FILE_PATH_MAX_LENGTH];
-				cin >> file2;
+				char command1[] = "Enter the path to the file containing the first matrix: ";
+				matrixData matrixData1 = readData(command1);
+				double** matrix1 = matrixData1.elements;
+				int rows1 = matrixData1.rows;
+				int columns1 = matrixData1.columns;
+
+				char command2[] = "Enter the path to the file containing the second matrix: ";
+				matrixData matrixData2 = readData(command2);
+				double** matrix2 = matrixData2.elements;
+				int rows2 = matrixData2.rows;
+				int columns2 = matrixData2.columns;
 
 				char position = ' ';
 				bool isLeft;
@@ -1167,16 +1154,6 @@ int main() {
 				}
 
 				bool saveResultFile = saveResultAsFile();
-
-				matrixData matrixData1 = readData(file1);
-				double** matrix1 = matrixData1.elements;
-				int rows1 = matrixData1.rows;
-				int columns1 = matrixData1.columns;
-
-				matrixData matrixData2 = readData(file2);
-				double** matrix2 = matrixData2.elements;
-				int rows2 = matrixData2.rows;
-				int columns2 = matrixData2.columns;
 
 				matrixEquation(matrix1, matrix2, rows1, columns1, rows2, columns2, isLeft, saveResultFile);
 
