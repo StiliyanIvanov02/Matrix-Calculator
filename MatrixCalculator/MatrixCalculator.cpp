@@ -979,6 +979,27 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 	}
 }
 
+bool isInt(char input[]) {
+	for (int i = 0; input[i] != '\0'; i++) {
+		if (!isdigit(input[i])) {
+
+			return false;
+		}
+	}
+	return true;
+}
+
+int toInt(char input[]) {
+	int number = 0;
+	for (int i = 0; input[i] != '\0'; i++) {
+		number += input[i] - '0';
+		number *= 10;
+	}
+	number /= 10;
+
+	return number;
+}
+
 int main() {
 	srand((unsigned)time(NULL));
 
@@ -992,10 +1013,19 @@ int main() {
 
 	int number = 0;
 
-	while (number != NUMBER_OPERATIONS) {
+	while (number != 10) {
 		cout << endl;
-		cout << "Enter the number of the selected operation: ";
-		cin >> number;
+		char input[1024] = " ";
+		while (!isInt(input)) {
+			cout << "Enter the number of the selected operation: ";
+			cin >> input;
+			if (!isInt(input)) {
+				cout << "Invalid data type!" << endl;
+				cout << endl;
+			}
+		}
+
+		number = toInt(input);
 
 		switch (number) {
 			case 1: {
@@ -1159,7 +1189,12 @@ int main() {
 
 				break;
 			}
+			case 10: {
+				cout << "Exited from program." << endl;
+				break;
+			}
 			default: {
+				cout << "Invalid number of operation!" << endl;
 				break;
 			}
 		}
