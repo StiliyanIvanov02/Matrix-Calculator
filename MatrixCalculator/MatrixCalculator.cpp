@@ -72,6 +72,7 @@ matrixData readData (char command[]) {
 		file.open(path, std::ios::in);
 		if (!file.is_open()) {
 			cout << "There is no file with such a name." << endl;
+			cout << endl;
 		}
 		else {
 			validPath = true;
@@ -979,24 +980,82 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 	}
 }
 
-bool isInt(char input[]) {
+bool isInt (char input[]) {
 	for (int i = 0; input[i] != '\0'; i++) {
+		if (i == 0 && input[i] == '-') {
+			continue;
+		}
 		if (!isdigit(input[i])) {
-
 			return false;
 		}
 	}
 	return true;
 }
 
-int toInt(char input[]) {
-	int number = 0;
+bool isDouble (char input[]) {
+	bool hasDecimalPoint = false;
 	for (int i = 0; input[i] != '\0'; i++) {
+		if (i == 0 && input[i] == '-') {
+			continue;
+		}
+		if (!isdigit(input[i])) {
+			if ((input[i] == '.' || input[i] == ',') && hasDecimalPoint == false) {
+				hasDecimalPoint = true;
+				continue;
+			}
+			return false;
+		}
+	}
+	return true;
+}
+
+int convertToInt (char input[]) {
+	int number = 0;
+	bool isNegative = false;
+	for (int i = 0; input[i] != '\0'; i++) {
+		if (i == 0 && input[i] == '-') {
+			isNegative = true;
+			continue;
+		}
 		number += input[i] - '0';
 		number *= 10;
 	}
 	number /= 10;
 
+	if (isNegative) {
+		number = -number;
+	}
+	return number;
+}
+
+double convertToDouble(char input[]) {
+	double number = 0.0;
+	bool isNegative = false, hasDecimalPoint = false;
+	int numberDigitsAfterDecimalPoint = 0;
+	for (int i = 0; input[i] != '\0'; i++) {
+		if (i == 0 && input[i] == '-') {
+			isNegative = true;
+			continue;
+		}
+		if ((input[i] == '.' || input[i] == ',') && hasDecimalPoint == false) {
+			hasDecimalPoint = true;
+			continue;
+		}
+		else {
+			if (hasDecimalPoint == true) {
+				numberDigitsAfterDecimalPoint++;
+			}
+			number += input[i] - '0';
+			number *= 10;
+		}
+	}
+	for (int j = 0; j <= numberDigitsAfterDecimalPoint; j++) {
+		number /= 10;
+	}
+
+	if (isNegative) {
+		number = -number;
+	}
 	return number;
 }
 
@@ -1025,7 +1084,7 @@ int main() {
 			}
 		}
 
-		number = toInt(input);
+		number = convertToInt(input);
 
 		switch (number) {
 			case 1: {
@@ -1054,9 +1113,16 @@ int main() {
 				int rows = matrixData.rows;
 				int columns = matrixData.columns;
 
-				cout << "Enter the value of the scalar: ";
-				double scalar;
-				cin >> scalar;
+				char inputScalar[1024] = " ";
+				while (!isDouble(inputScalar)) {
+					cout << "Enter the value of the scalar: ";
+					cin >> inputScalar;
+					if (!isDouble(inputScalar)) {
+						cout << "Invalid data type!" << endl;
+						cout << endl;
+					}
+				}
+				double scalar = convertToDouble(inputScalar);
 
 				bool saveResultFile = saveResultAsFile();
 
@@ -1071,9 +1137,16 @@ int main() {
 				int rows = matrixData.rows;
 				int columns = matrixData.columns;
 
-				cout << "Enter the value of the scalar: ";
-				double scalar;
-				cin >> scalar;
+				char inputScalar[1024] = " ";
+				while (!isDouble(inputScalar)) {
+					cout << "Enter the value of the scalar: ";
+					cin >> inputScalar;
+					if (!isDouble(inputScalar)) {
+						cout << "Invalid data type!" << endl;
+						cout << endl;
+					}
+				}
+				double scalar = convertToDouble(inputScalar);
 
 				bool saveResultFile = saveResultAsFile();
 
@@ -1109,8 +1182,21 @@ int main() {
 
 				int power = -6;
 				while (power < -5 || power > 5) {
-					cout << "Enter the power to which the matrix will be raised (an integer between -5 and 5): ";
-					cin >> power;
+					char inputPower[1024] = " ";
+					while (!isInt(inputPower)) {
+						cout << "Enter the power to which the matrix will be raised (an integer between -5 and 5): ";
+						cin >> inputPower;
+						if (!isInt(inputPower)) {
+							cout << "Invalid data type!" << endl;
+							cout << endl;
+						}
+					}
+
+					power = convertToInt(inputPower);
+
+					if (power < -5 || power > 5) {
+
+					}
 				}
 
 				bool saveResultFile = saveResultAsFile();
