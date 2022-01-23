@@ -1,3 +1,6 @@
-﻿  MatrixCalculator.cpp
-C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\MatrixCalculator.cpp(54): warning C4715: 'saveResultAsFile': not all control paths return a value
+﻿  HelperFunctions.cpp
+  MatrixCalculator.cpp
+  OperationsResults.cpp
+  Generating Code...
+C:\Uni\Introduction to Programming\MatrixCalculator\MatrixCalculator\HelperFunctions.cpp(54): warning C4715: 'saveResultAsFile': not all control paths return a value
   MatrixCalculator.vcxproj -> C:\Uni\Introduction to Programming\MatrixCalculator\x64\Debug\MatrixCalculator.exe
