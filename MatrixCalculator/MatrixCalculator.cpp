@@ -277,12 +277,12 @@ double** calculateTransposedMatrix (double** matrix, int rows, int columns) {
 	return transposedMatrix;
 }
 
-double** calculateInverseMatrix(double** matrix, int rows) {
+double** calculateInverseMatrix(double** matrix, int rows, bool& isDeterminantZero) {
 	double determinant = calculateDeterminant(matrix, rows);
 
 	if (determinant == 0) {
 		cout << "Cannot execute the operation. The determinant of the matrix should not be equal to zero." << endl;
-		exit;
+		isDeterminantZero = true;
 	}
 
 	double** cofactorMatrix = new double* [rows];
@@ -313,6 +313,9 @@ double** calculateInverseMatrix(double** matrix, int rows) {
 			}
 
 			cofactorMatrix[i][j] = calculateDeterminant(A, rows - 1);
+			for (int k = 1; k <= ((i + 1) + (j + 1)); k++) {
+				cofactorMatrix[i][j] *= -1;
+			}
 
 			for (int k = 0; k < rows - 1; k++) {
 				delete A[k];
@@ -338,7 +341,7 @@ double** calculateInverseMatrix(double** matrix, int rows) {
 	return inverseMatrix;
 }
 
-double** calculateMatrixRaisedToPower(double** matrix, int rows, int power) {
+double** calculateMatrixRaisedToPower(double** matrix, int rows, int power, bool& isDeterminantZero) {
 	double** raisedMatrix = new double* [rows];
 	for (int i = 0; i < rows; i++) {
 		raisedMatrix[i] = new double[rows];
@@ -379,7 +382,7 @@ double** calculateMatrixRaisedToPower(double** matrix, int rows, int power) {
 		}
 	}
 	else if (power < 0) {
-		double** inverseMatrix = calculateInverseMatrix(matrix, rows);
+		double** inverseMatrix = calculateInverseMatrix(matrix, rows, isDeterminantZero);
 
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < rows; j++) {
@@ -557,7 +560,7 @@ void divideByScalar (double** matrix, int rows, int columns, double scalar, bool
 };
 
 void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool resultSaved) {
-	if (columns2 != rows1) {
+	if (columns1 != rows2) {
 		cout << "Cannot execute the operation. The number of rows of the second matrix should be the same as the number of columns of the first one in order for them to be multiplied." << endl;
 		return;
 	}
@@ -611,7 +614,7 @@ void multiplyMatrixByMatrix (double** matrix1, double** matrix2, int rows1, int 
 			}
 		}
 		else {
-			printMatrixRow(matrix, i, columns1);
+			printMatrixRow(matrix, i, columns2);
 		}
 
 		cout << endl;
@@ -636,37 +639,41 @@ void raiseMatrixToPower(double** matrix, int rows, int columns, int power, bool 
 		return;
 	}
 
-	double** raisedMatrix = calculateMatrixRaisedToPower(matrix, rows, power);
+	bool isDeterminantInverseZero = false;
 
-	for (int i = 0; i < rows; i++) {
-		printMatrixRow(matrix, i, rows);
+	double** raisedMatrix = calculateMatrixRaisedToPower(matrix, rows, power, isDeterminantInverseZero);
 
-		if (i == 0) {
-			cout << power << "    ";
-		}
-		else if (i == rows / 2) {
-			cout << " ";
-			for (int i = 0; i < numberSymbolsNumber(power); i++) {
-				cout << " ";
+	if (!isDeterminantInverseZero) {
+		for (int i = 0; i < rows; i++) {
+			printMatrixRow(matrix, i, rows);
+
+			if (i == 0) {
+				cout << power << "    ";
 			}
-			cout << " = ";
-		}
-		else {
-			for (int i = 0; i < numberSymbolsNumber(power) + 4; i++) {
+			else if (i == rows / 2) {
 				cout << " ";
+				for (int i = 0; i < numberSymbolsNumber(power); i++) {
+					cout << " ";
+				}
+				cout << " = ";
 			}
+			else {
+				for (int i = 0; i < numberSymbolsNumber(power) + 4; i++) {
+					cout << " ";
+				}
+			}
+
+			printMatrixRow(raisedMatrix, i, rows);
+
+			cout << endl;
 		}
-
-		printMatrixRow(raisedMatrix, i, rows);
-
 		cout << endl;
-	}
-	cout << endl;
 
-	if (resultSaved == true) {
-		char* filename = generateNameMatrixFilePath();
-		saveMatrix(raisedMatrix, rows, rows, filename);
-		delete filename;
+		if (resultSaved == true) {
+			char* filename = generateNameMatrixFilePath();
+			saveMatrix(raisedMatrix, rows, rows, filename);
+			delete filename;
+		}
 	}
 
 	for (int i = 0; i < rows; i++) {
@@ -716,9 +723,11 @@ void inverseMatrix(double** matrix, int rows, int columns, bool resultSaved) {
 		return;
 	}
 
-	double** inverseMatrix = calculateInverseMatrix(matrix, rows);
+	bool isDeterminantZero = false;
 
-	if (!isnan(inverseMatrix[0][0])) {
+	double** inverseMatrix = calculateInverseMatrix(matrix, rows, isDeterminantZero);
+
+	if (!isDeterminantZero) {
 		for (int i = 0; i < rows; i++) {
 			printMatrixRow(matrix, i, rows);
 
@@ -813,9 +822,11 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 		return;
 	}
 
-	double** inverseMatrix1 = calculateInverseMatrix(matrix1, rows1);
+	bool isDeterminantZero = false;
 
-	if (!isnan(inverseMatrix1[0][0])) {
+	double** inverseMatrix1 = calculateInverseMatrix(matrix1, rows1, isDeterminantZero);
+
+	if (!isDeterminantZero) {
 		if (isLeft) {
 			if (columns2 != rows1) {
 				cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
@@ -828,83 +839,6 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			}
 
 			X = calculateMatrixMultiplication(matrix2, inverseMatrix1, rows2, columns2, rows1, columns1);
-
-			int rows;
-			if (rows1 >= rows2) {
-				rows = rows1;
-			}
-			else {
-				rows = rows2;
-			}
-
-			for (int i = 0; i < rows; i++) {
-				if (i >= rows1) {
-					for (int j = 0; j < numberSymbolsMatrixRow(columns1); j++) {
-						cout << " ";
-					}
-				}
-				else {
-					printMatrixRow(matrix1, i, columns1);
-				}
-
-				if (i == rows / 2) {
-					cout << " *  X  = ";
-				}
-				else {
-					cout << "         ";
-				}
-
-				if (i >= rows2) {
-					for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
-						cout << " ";
-					}
-				}
-				else {
-					printMatrixRow(matrix2, i, columns2);
-				}
-
-				cout << endl;
-			}
-			cout << endl;
-
-			for (int j = 0; j < rows2; j++) {
-				if (j == rows2 / 2) {
-					cout << " X  = ";
-				}
-				else {
-					cout << "      ";
-				}
-
-				printMatrixRow(X, j, columns1);
-
-				cout << endl;
-			}
-
-			cout << endl;
-
-			if (resultSaved == true) {
-				char* filename = generateNameMatrixFilePath();
-				saveMatrix(X, rows2, columns1, filename);
-				delete filename;
-			}
-
-			for (int i = 0; i < rows2; i++) {
-				delete[] X[i];
-			}
-			delete[] X;
-		}
-		else {
-			if (columns1 != rows2) {
-				cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
-				return;
-			}
-
-			double** X = new double* [rows1];
-			for (int i = 0; i < rows1; i++) {
-				X[i] = new double[columns2];
-			}
-
-			X = calculateMatrixMultiplication(inverseMatrix1, matrix2, rows1, columns1, rows2, columns2);
 
 			int rows;
 			if (rows1 >= rows2) {
@@ -977,7 +911,89 @@ void matrixEquation(double** matrix1, double** matrix2, int rows1, int columns1,
 			}
 			delete[] X;
 		}
+		else {
+			if (columns1 != rows2) {
+				cout << "Cannot execute the operation. The two given matrices are incompatible." << endl;
+				return;
+			}
+
+			double** X = new double* [rows1];
+			for (int i = 0; i < rows1; i++) {
+				X[i] = new double[columns2];
+			}
+
+			X = calculateMatrixMultiplication(inverseMatrix1, matrix2, rows1, columns1, rows2, columns2);
+
+			int rows;
+			if (rows1 >= rows2) {
+				rows = rows1;
+			}
+			else {
+				rows = rows2;
+			}
+
+			for (int i = 0; i < rows; i++) {
+				if (i >= rows1) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns1); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix1, i, columns1);
+				}
+
+				if (i == rows / 2) {
+					cout << " *  X  = ";
+				}
+				else {
+					cout << "         ";
+				}
+
+				if (i >= rows2) {
+					for (int j = 0; j < numberSymbolsMatrixRow(columns2); j++) {
+						cout << " ";
+					}
+				}
+				else {
+					printMatrixRow(matrix2, i, columns2);
+				}
+
+				cout << endl;
+			}
+			cout << endl;
+
+			for (int j = 0; j < rows2; j++) {
+				if (j == rows2 / 2) {
+					cout << " X  = ";
+				}
+				else {
+					cout << "      ";
+				}
+
+				printMatrixRow(X, j, columns2);
+
+				cout << endl;
+			}
+
+			cout << endl;
+
+			if (resultSaved == true) {
+				char* filename = generateNameMatrixFilePath();
+				saveMatrix(X, rows2, columns1, filename);
+				delete filename;
+			}
+
+			for (int i = 0; i < rows2; i++) {
+				delete[] X[i];
+			}
+			delete[] X;
+		}
 	}
+
+	for (int i = 0; i < rows1; i++) {
+		delete[] inverseMatrix1[i];
+	}
+	delete[] inverseMatrix1;
 }
 
 bool isInt (char input[]) {
@@ -1259,8 +1275,7 @@ int main() {
 				while (position != 'L' && position != 'R') {
 					cout << "Will the matrix X we want to obtain be the left multiplier (X*A=B) or the right multiplier (A*X=B)?" << endl;
 					cout << "Enter L for left or R for right: ";
-					char saved;
-					cin >> saved;
+					cin >> position;
 					if (position == 'L') {
 						isLeft = true;
 					}
