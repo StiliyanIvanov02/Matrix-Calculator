@@ -113,11 +113,15 @@ void Calculator() {
 			int columns = matrixData.columns;
 
 			char inputScalar[1024] = " ";
-			while (!isDouble(inputScalar)) {
+			while (!isDouble(inputScalar) || convertToDouble(inputScalar) == 0) {
 				cout << "Enter the value of the scalar: ";
 				cin >> inputScalar;
 				if (!isDouble(inputScalar)) {
 					cout << "Invalid data type!" << endl;
+					cout << endl;
+				}
+				else if (convertToDouble(inputScalar) == 0) {
+					cout << "Cannot divide by 0!" << endl;
 					cout << endl;
 				}
 			}

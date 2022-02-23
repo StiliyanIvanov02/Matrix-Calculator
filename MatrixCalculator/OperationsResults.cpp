@@ -400,7 +400,7 @@ void transposeMatrix (double** matrix, int rows, int columns, bool resultSaved) 
 	}
 
 	FreeDynamicMemory(matrix, rows);
-	FreeDynamicMemory(transposedMatrix, rows);
+	FreeDynamicMemory(transposedMatrix, columns);
 }
 
 void matrixEquation (double** matrix1, double** matrix2, int rows1, int columns1, int rows2, int columns2, bool isLeft, bool resultSaved) {

@@ -112,16 +112,29 @@ matrixData readData(char command[]) {
 // returns the path generated for the text file which will store the matrix result
 char* generateNameMatrixFilePath() {
 	char* output = new char[OUTPUT_FILE_PATH_LENGTH];
-	for (int i = 0; i < OUTPUT_FILE_PATH_LENGTH; i++) {
-		// the name of the text file consists of 5 random digits
-		if (i >= 9 && i <= 13) {
-			output[i] = (rand() % 10) + '0';
+	bool fileExists = false;
+	
+	do {
+		for (int i = 0; i < OUTPUT_FILE_PATH_LENGTH; i++) {
+			// the name of the text file consists of 5 random digits
+			if (i >= 9 && i <= 13) {
+				output[i] = (rand() % 10) + '0';
+			}
+			else {
+				output[i] = FILE_PATH[i];
+			}
 		}
-		else {
-			output[i] = FILE_PATH[i];
-		}
-	}
 
+		// checks of a file with the same name already exists
+		ifstream file;
+		file.open(output, std::ios::in);
+		if (file.is_open()) {
+			fileExists = true;
+		}
+		file.close();
+	} 
+	while (fileExists);
+	
 	return output;
 }
 
